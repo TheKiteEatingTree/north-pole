@@ -1,1 +1,2 @@
-# north-pole
+# compass
+ChrOMe PASSword-store extension

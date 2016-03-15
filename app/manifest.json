@@ -1,0 +1,19 @@
+{
+    "name": "northern-pass",
+    "version": "1.0",
+    "description": "Chrome packaged app for pass (password-store)",
+    "icons": {
+        "128": "news_icon.png"
+    },
+    "app": {
+        "background": {
+            "scripts": ["dist/background.bundle.js"]
+        }
+    },
+    "permissions": [
+        "storage",
+        "clipboardWrite",
+        {"fileSystem": ["write", "retainEntries", "directory"]}
+    ],
+    "manifest_version": 2
+}
