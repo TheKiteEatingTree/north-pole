@@ -59,12 +59,15 @@ export default class PassDirectory {
                 }
                 return 0;
             });
-            
+
             return simple;
         };
 
         return this.getFiles().then((files) => {
-            return convert(files);
+            return {
+                name: this.entry.name,
+                files: convert(files)
+            };
         });
     }
 }
