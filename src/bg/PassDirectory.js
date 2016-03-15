@@ -37,4 +37,34 @@ export default class PassDirectory {
         return fileSystem.readDirRecursive(this.entry)
             .then(result => result.files);
     }
+
+    getSimpleFiles() {
+        const convert = function(files) {
+            const simple = files.map((file) => {
+                if (file.isFile) {
+                    return {name: file.name.slice(0, -4)};
+                } else {
+                    return {
+                        name: file.entry.name,
+                        files: convert(file.files)
+                    };
+                }
+            });
+
+            simple.sort((a, b) => {
+                if (a.files && !b.files) {
+                    return -1;
+                } else if (b.files && !a.files) {
+                    return 1;
+                }
+                return 0;
+            });
+            
+            return simple;
+        };
+
+        return this.getFiles().then((files) => {
+            return convert(files);
+        });
+    }
 }

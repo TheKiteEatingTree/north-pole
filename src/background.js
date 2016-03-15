@@ -3,14 +3,14 @@
 import PassDirectory from './bg/PassDirectory.js';
 import storage from './bg/storage.js';
 
-let passDir = PassDirectory.fetch;
+let passDir = PassDirectory.fetch();
 
-window.fetchPassDir = passDir;
+window.passDir = passDir;
 window.fetchPrivateKey = fetchPrivateKey;
 window.savePassDir = savePassDir;
 window.savePrivateKey = savePrivateKey;
 
-chrome.app.runtime.onLaunched.addListener(function () {
+chrome.app.runtime.onLaunched.addListener(() => {
     chrome.app.window.create('index.html', {
         'outerBounds': {
             'width': 600,
@@ -19,15 +19,16 @@ chrome.app.runtime.onLaunched.addListener(function () {
     });
 });
 
-chrome.runtime.onConnectExternal.addListener(function (port) {
-    port.onMessage.addListener(function (msg) {
+chrome.runtime.onConnectExternal.addListener((port) => {
+    port.onMessage.addListener((msg) => {
         if (msg.cmd === 'sendFiles') {
-            passDir.then((passDir) => {
-                port.postMessage({
-                    cmd: 'sendFiles',
-                    files: passDir.files
+            passDir.then(passDir => passDir.getSimpleFiles())
+                .then((files) => {
+                    port.postMessage({
+                        cmd: 'sendFiles',
+                        files: files
+                    });
                 });
-            });
         }
     });
 });

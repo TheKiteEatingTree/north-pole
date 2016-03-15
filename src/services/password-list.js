@@ -9,7 +9,7 @@ export default class PasswordList {
         this.passwords = [];
 
         this.passDir = this.bg.then((bg) => {
-            return this.promise.when(bg.fetchPassDir());
+            return this.promise.when(bg.passDir);
         });
 
         this.refreshPasswordList();
