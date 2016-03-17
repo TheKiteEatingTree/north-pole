@@ -10,17 +10,7 @@ export default class PGP {
         this.bg = bg.getBackgroundPage();
 
         this.privateKey = this.bg.then((bg) => {
-            this.promise.when(bg.fetchPrivateKey());
-        })
-        .then((privateKey) => {
-            if (privateKey) {
-                return this.fileSystem.restoreEntry(privateKey);
-            }
-            return null;
-        })
-        .catch((err) => {
-            console.error(err);
-            return null;
+            return this.promise.when(bg.privateKey);
         });
     }
 
@@ -70,15 +60,10 @@ export default class PGP {
             accepts: [{extensions: ['asc']}],
             acceptsAllTypes: false
         }).then((entry) => {
-            const keyId = this.fileSystem.retainEntry(entry);
-            return this.promise.all([
-                this.promise.when(entry),
-                this.bg.then(bg => this.promise.when(bg.savePrivateKey(keyId)))
-            ]);
-        }).then((results) => {
-            const entry = results[0];
-            this.privateKey = this.promise.when(entry);
-            return entry;
+            this.bg.then(bg => this.promise.when(bg.savePrivateKey(entry)));
+        }).then((privateKey) => {
+            this.privateKey = this.promise.when(privateKey);
+            return privateKey;
         });
     }
 }

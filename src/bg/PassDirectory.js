@@ -56,8 +56,9 @@ export default class PassDirectory {
                     return -1;
                 } else if (b.files && !a.files) {
                     return 1;
+                } else {
+                    return a.name.localeCompare(b.name);
                 }
-                return 0;
             });
 
             return simple;
@@ -68,6 +69,12 @@ export default class PassDirectory {
                 name: this.entry.name,
                 files: convert(files)
             };
+        });
+    }
+
+    findFile(name) {
+        return new Promise((resolve, reject) => {
+            this.entry.getFile(`${name}.gpg`, {}, entry => resolve(entry), err => reject(err));
         });
     }
 }
