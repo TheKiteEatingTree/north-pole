@@ -72,6 +72,24 @@ export default class PassDirectory {
         });
     }
 
+    getFlatFiles() {
+        const add = function(files, flat) {
+            files.forEach((file) => {
+                if (file.isFile) {
+                    flat.push(file);
+                } else {
+                    add(file.files, flat);
+                }
+            });
+        };
+
+        return this.getFiles().then((files) => {
+            const flat = [];
+            add(files, flat);
+            return flat;
+        });
+    }
+
     findFile(name) {
         return new Promise((resolve, reject) => {
             this.entry.getFile(`${name}.gpg`, {}, entry => resolve(entry), err => reject(err));

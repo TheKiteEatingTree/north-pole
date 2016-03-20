@@ -1,5 +1,6 @@
 'use strict';
 
+import * as urls from './bg/urls.js';
 import PrivateKey from './bg/PrivateKey.js';
 import PassDirectory from './bg/PassDirectory.js';
 
@@ -25,7 +26,7 @@ chrome.runtime.onConnectExternal.addListener((port) => {
         if (msg.cmd === 'sendFiles') {
             sendFiles(port);
         } else if (msg.cmd === 'testPassword') {
-            testPassword(msg.password, port);
+            testPassword(msg.password, msg.url, port);
         } else if (msg.cmd === 'decrypt') {
             decrypt(msg.name, msg.password, port);
         }
@@ -73,7 +74,7 @@ function sendFiles(port) {
         });
 }
 
-function testPassword(password, port) {
+function testPassword(password, url, port) {
     const msg = {cmd: 'testPassword'};
     privateKey.then(privateKey => privateKey.testPassword(password))
         .then((success) => {
@@ -81,6 +82,9 @@ function testPassword(password, port) {
                 msg.error = 'Incorrect Password';
             }
             port.postMessage(msg);
+            window.setTimeout(() => {
+                urls.testUrl(url, password, port);
+            }, 10);
         }).catch((err) => {
             msg.error = err.message;
             port.postMessage(msg);

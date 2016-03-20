@@ -25,6 +25,7 @@
     "angular-route": "^1.5.0",
     "angular-treemendous": "^0.2.4",
     "bootstrap": "^3.3.6",
+    "moment": "^2.12.0",
     "openpgp": "^2.1.0"
   },
   "devDependencies": {
