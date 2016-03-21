@@ -51,8 +51,7 @@ export function testUrl(url, password, port) {
         }).then((password) => {
             port.postMessage({
                 cmd: 'foundPassword',
-                user: password.user,
-                password: password.password
+                password: password.toJSON()
             });
         });
     });
