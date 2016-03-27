@@ -1,7 +1,6 @@
 'use strict';
 
 import * as openpgp from 'openpgp';
-import Password from './Password.js';
 import fileSystem from './file-system.js';
 import storage from './storage.js';
 
@@ -31,43 +30,21 @@ export default class PrivateKey {
         });
     }
 
-    decrypt(file, password) {
-        return Promise.all([
-            this.open(),
-            fileSystem.readFileAsBlob(file)
-        ]).then((results) => {
-            const privateKey = results[0];
-            const message = openpgp.message.read(results[1]);
-
-            if (!privateKey.decrypt(password)) {
-                throw new Error('Incorrect password');
-            }
-
-            const options = {
-                message: message,
-                privateKey: privateKey,
-                armor: false
-            };
-
-            return openpgp.decrypt(options);
-        }).then(result => new Password(result));
-    }
-
     getDisplayPath() {
         return fileSystem.getDisplayPath(this.entry);
     }
 
     open() {
         return fileSystem.readFileAsText(this.entry).then((contents) => {
-            const privateKey = openpgp.key.readArmored(contents).keys[0];
+            const privateKey = openpgp.key.readArmored(contents);
             if (privateKey.err) {
                 throw new Error('Could not open private key');
             }
-            return privateKey;
+            return privateKey.keys;
         });
     }
 
     testPassword(password) {
-        return this.open().then(privateKey => privateKey.decrypt(password));
+        return this.open().then(privateKey => privateKey[0].decrypt(password));
     }
 }

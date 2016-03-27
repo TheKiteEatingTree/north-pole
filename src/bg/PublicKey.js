@@ -36,11 +36,11 @@ export default class PublicKey {
 
     open() {
         return fileSystem.readFileAsText(this.entry).then((contents) => {
-            const publicKeys = openpgp.key.readArmored(contents).keys;
+            const publicKeys = openpgp.key.readArmored(contents);
             if (publicKeys.err) {
                 throw new Error('Could not open public key');
             }
-            return publicKeys;
+            return publicKeys.keys;
         });
     }
 }

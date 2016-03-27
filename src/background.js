@@ -1,6 +1,7 @@
 'use strict';
 
 import * as urls from './bg/urls.js';
+import Encryption from './bg/Encryption.js';
 import PrivateKey from './bg/PrivateKey.js';
 import PublicKey from './bg/PublicKey.js';
 import PassDirectory from './bg/PassDirectory.js';
@@ -53,13 +54,15 @@ function decrypt(name, password, port) {
     window.passDir.then((passDir) => {
         return Promise.all([
             passDir.findFile(name),
-            window.privateKey
+            window.privateKey,
+            window.publicKey
         ]);
     }).then((results) => {
         const file = results[0];
         const privateKey = results[1];
+        const publicKey = results[2];
 
-        return privateKey.decrypt(file, password);
+        return Encryption.decrypt(privateKey, publicKey, file, password);
     }).then((password) => {
         msg.password = password.toJSON();
         port.postMessage(msg);

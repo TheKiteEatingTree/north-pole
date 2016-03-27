@@ -1,6 +1,7 @@
 'use strict';
 
 import moment from 'moment';
+import Encryption from './Encryption.js';
 
 let urlsUpdated = moment.utc().subtract(6, 'hours');
 
@@ -42,12 +43,14 @@ export function testUrl(url, password, port) {
         return window.passDir.then((passDir) => {
             return Promise.all([
                 window.privateKey,
+                window.publicKey,
                 passDir.findFile(result.file)
             ]);
         }).then((results) => {
             const privateKey = results[0];
-            const file = results[1];
-            return privateKey.decrypt(file, password);
+            const publicKey = results[1];
+            const file = results[2];
+            return Encryption.decrypt(privateKey, publicKey, file, password);
         }).then((password) => {
             port.postMessage({
                 cmd: 'foundPassword',
@@ -71,14 +74,16 @@ export function refreshUrls(password) {
         return passDir.getFlatFiles().then((files) => {
             return Promise.all([
                 Promise.resolve(files),
-                window.privateKey
+                window.privateKey,
+                window.publicKey
             ]);
         }).then((results) => {
             const files = results[0];
             const privateKey = results[1];
+            const publicKey = results[2];
 
             return Promise.all(files.map((file) => {
-                return privateKey.decrypt(file, password)
+                return Encryption.decrypt(privateKey, publicKey, file, password)
                     .then((password) => {
                         return {
                             file: file,
