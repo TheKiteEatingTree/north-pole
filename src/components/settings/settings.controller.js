@@ -1,34 +1,46 @@
 'use strict';
 
 export default class SettingsController {
-    constructor(passwordList, pgp, fileSystem, $q) {
+    constructor(passwordList, pgp, fileSystem, $q, $mdToast) {
         this.passwordList = passwordList;
         this.pgp = pgp;
         this.fileSystem = fileSystem;
         this.promise = $q;
+        this.toast = $mdToast;
 
         this.pgp.privateKey
             .then(privateKey => this.promise.when(privateKey.getDisplayPath()))
-            .then(displayPath => this.keyPath = displayPath)
-            .catch((err) => this.keyPath = err.message);
+            .then(displayPath => this.privateKeyPath = displayPath)
+            .catch(err => this.toast.simple().textContent(err.message));
+
+        this.pgp.publicKey
+            .then(publicKey => this.promise.when(publicKey.getDisplayPath()))
+            .then(displayPath => this.publicKeyPath = displayPath)
+            .catch(err => this.toast.simple().textContent(err.message));
 
         this.passwordList.passDir
             .then(passDir => this.promise.when(passDir.getDisplayPath()))
             .then(displayPath => this.passDir = displayPath)
-            .catch((err) => this.passDir = err.message);
+            .catch(err => this.toast.simple().textContent(err.message));
     }
 
-    selectKey() {
+    selectPrivateKey() {
         this.pgp.selectPrivateKey().then(privateKey => privateKey.getDisplayPath())
-            .then(displayPath => this.keyPath = displayPath)
-            .catch(err => console.error(err));
+            .then(displayPath => this.privateKeyPath = displayPath)
+            .catch(err => this.toast.simple().textContent(err.message));
+    }
+
+    selectPublicKey() {
+        this.pgp.selectPublicKey().then(publicKey => publicKey.getDisplayPath())
+            .then(displayPath => this.publicKeyPath = displayPath)
+            .catch(err => this.toast.simple().textContent(err.message));
     }
 
     selectDir() {
         this.passwordList.selectPassDir().then(passDir => passDir.getDisplayPath())
             .then(displayPath => this.passDir = displayPath)
-            .catch(err => console.error(err));
+            .catch(err => this.toast.simple().textContent(err.message));
     }
 }
 
-SettingsController.$inject = ['passwordList', 'pgp', 'fileSystem', '$q'];
+SettingsController.$inject = ['passwordList', 'pgp', 'fileSystem', '$q', '$mdToast'];

@@ -1,0 +1,10 @@
+body {
+    font-size: 15px;
+}
+.title {
+    text-align: center;
+    color: white;
+}
+.no-bottom {
+    margin-bottom: 0;
+}

@@ -11,18 +11,6 @@ export default class PasswordList {
         this.passDir = this.bg.then((bg) => {
             return this.promise.when(bg.passDir);
         });
-
-        this.refreshPasswordList();
-    }
-
-    refreshPasswordList() {
-        this.passwords = [];
-        return this.passDir.then((passDir) => {
-            return this.promise.when(passDir.getFiles());
-        }).then((files) => {
-            this.passwords = files;
-            return this.passwords;
-        }).catch(() => []);
     }
 
     selectPassDir() {

@@ -1,17 +1,21 @@
 'use strict';
 
-config.$inject = ['$routeProvider'];
+config.$inject = ['$routeProvider', '$mdThemingProvider'];
 
-export default function config($routeProvider) {
-    $routeProvider.when('/home', {
-        template: require('./components/home/home.html'),
-        controller: 'HomeController',
-        controllerAs: 'vm'
-    }).when('/settings', {
+export default function config($routeProvider, $mdThemingProvider) {
+    $routeProvider.when('/settings', {
         template: require('./components/settings/settings.html'),
         controller: 'SettingsController',
         controllerAs: 'vm'
     }).otherwise({
-        redirectTo: '/home'
+        redirectTo: '/settings'
     });
+
+    $mdThemingProvider.theme('default')
+        .primaryPalette('cyan', {
+            'default': '500'
+        })
+        .accentPalette('amber', {
+            'default': '500'
+        });
 }

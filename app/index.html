@@ -2,22 +2,16 @@
 <html ng-app="northern-pass" lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Angular App</title>
+        <title>Northern Pass</title>
     </head>
     <body>
-        <div class="container">
-            <div class="row">
-                <div class="col-xs-3">
-                    <ul class="nav nav-pills nav-stacked">
-                        <li role="presentation" class="active"><a href="#">Home</a></li>
-                        <li role="presentation"><a href="#settings">Settings</a></li>
-                        <li role="presentation"><a href="#">Messages</a></li>
-                    </ul>
+        <div layout="column">
+            <md-toolbar class="md-whiteframe-4dp">
+                <div class="md-toolbar-tools">
+                    <span class="md-display-1 title" flex>compass</span>
                 </div>
-                <div class="col-xs-9">
-                    <ng-view></ng-view>
-                </div>
-            </div>
+            </md-toolbar>
+            <ng-view></ng-view>
         </div>
         <script src="dist/app.bundle.js"></script>
     </body>

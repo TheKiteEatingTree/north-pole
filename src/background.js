@@ -2,20 +2,20 @@
 
 import * as urls from './bg/urls.js';
 import PrivateKey from './bg/PrivateKey.js';
+import PublicKey from './bg/PublicKey.js';
 import PassDirectory from './bg/PassDirectory.js';
 
-let passDir = PassDirectory.fetch();
-let privateKey = PrivateKey.fetch();
-
-window.passDir = passDir;
-window.privateKey = privateKey;
+window.passDir = PassDirectory.fetch();
+window.privateKey = PrivateKey.fetch();
+window.publicKey = PublicKey.fetch();
 window.savePassDir = savePassDir;
 window.savePrivateKey = savePrivateKey;
+window.savePublicKey = savePublicKey;
 
 chrome.app.runtime.onLaunched.addListener(() => {
     chrome.app.window.create('index.html', {
         'outerBounds': {
-            'width': 600,
+            'width': 500,
             'height': 400
         }
     });
@@ -34,19 +34,26 @@ chrome.runtime.onConnectExternal.addListener((port) => {
 });
 
 function savePassDir(dir) {
-    return PassDirectory.save(dir);
+    window.passDir = PassDirectory.save(dir);
+    return window.passDir;
 }
 
 function savePrivateKey(key) {
-    return PrivateKey.save(key);
+    window.privateKey = PrivateKey.save(key);
+    return window.privateKey;
+}
+
+function savePublicKey(key) {
+    window.publicKey = PublicKey.save(key);
+    return window.publicKey;
 }
 
 function decrypt(name, password, port) {
     const msg = {cmd: 'decrypt'};
-    passDir.then((passDir) => {
+    window.passDir.then((passDir) => {
         return Promise.all([
             passDir.findFile(name),
-            privateKey
+            window.privateKey
         ]);
     }).then((results) => {
         const file = results[0];
@@ -64,7 +71,7 @@ function decrypt(name, password, port) {
 
 function sendFiles(port) {
     const msg = {cmd: 'sendFiles'};
-    passDir.then(passDir => passDir.getSimpleFiles())
+    window.passDir.then(passDir => passDir.getSimpleFiles())
         .then((files) => {
             msg.files = files;
             port.postMessage(msg);
@@ -76,7 +83,7 @@ function sendFiles(port) {
 
 function testPassword(password, url, port) {
     const msg = {cmd: 'testPassword'};
-    privateKey.then(privateKey => privateKey.testPassword(password))
+    window.privateKey.then(privateKey => privateKey.testPassword(password))
         .then((success) => {
             if (!success) {
                 msg.error = 'Incorrect Password';
