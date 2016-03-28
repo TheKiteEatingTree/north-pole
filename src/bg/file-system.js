@@ -104,5 +104,37 @@ export default {
 
     retainEntry(entry) {
         return chrome.fileSystem.retainEntry(entry);
+    },
+
+    writeFileWithBlob(entry, data) {
+        return new Promise((resolve, reject) => {
+            entry.createWriter((fileWriter) => {
+                fileWriter.onwriteend = function() {
+                    resolve();
+                };
+
+                fileWriter.onerror = function(e) {
+                    reject(e);
+                };
+
+                fileWriter.truncate(0);
+            });
+        }).then(() => {
+            return new Promise((resolve, reject) => {
+                entry.createWriter((fileWriter) => {
+                    fileWriter.onwriteend = function() {
+                        resolve();
+                    };
+
+                    fileWriter.onerror = function(e) {
+                        reject(e);
+                    };
+
+                    var blob = new Blob([data], {type: 'application/octet-binary'});
+
+                    fileWriter.write(blob);
+                });
+            });
+        });
     }
 };

@@ -40,11 +40,11 @@ export default class PrivateKey {
             if (privateKey.err) {
                 throw new Error('Could not open private key');
             }
-            return privateKey.keys;
+            return privateKey.keys[0];
         });
     }
 
     testPassword(password) {
-        return this.open().then(privateKey => privateKey[0].decrypt(password));
+        return this.open().then(privateKey => privateKey.decrypt(password));
     }
 }

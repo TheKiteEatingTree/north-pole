@@ -1,7 +1,7 @@
 'use strict';
 
 import * as urls from './bg/urls.js';
-import Encryption from './bg/Encryption.js';
+import * as pgp from './bg/pgp.js';
 import PrivateKey from './bg/PrivateKey.js';
 import PublicKey from './bg/PublicKey.js';
 import PassDirectory from './bg/PassDirectory.js';
@@ -30,6 +30,8 @@ chrome.runtime.onConnectExternal.addListener((port) => {
             testPassword(msg.password, msg.url, port);
         } else if (msg.cmd === 'decrypt') {
             decrypt(msg.name, msg.password, port);
+        } else if (msg.cmd === 'encrypt') {
+            encrypt(msg.name, msg.content, port);
         }
     });
 });
@@ -54,17 +56,36 @@ function decrypt(name, password, port) {
     window.passDir.then((passDir) => {
         return Promise.all([
             passDir.findFile(name),
-            window.privateKey,
-            window.publicKey
+            window.privateKey
         ]);
     }).then((results) => {
         const file = results[0];
         const privateKey = results[1];
-        const publicKey = results[2];
 
-        return Encryption.decrypt(privateKey, publicKey, file, password);
+        return pgp.decrypt(privateKey, file, password);
     }).then((password) => {
         msg.password = password.toJSON();
+        port.postMessage(msg);
+    }).catch((err) => {
+        console.log(err);
+        msg.error = err.message;
+        port.postMessage(msg);
+    });
+}
+
+function encrypt(name, content, port) {
+    const msg = {cmd: 'encrypt'};
+    window.passDir.then((passDir) => {
+        return Promise.all([
+            passDir.findFile(name),
+            window.publicKey
+        ]);
+    }).then((results) => {
+        const file = results[0];
+        const publicKey = results[1];
+
+        return pgp.encrypt(publicKey, file, content);
+    }).then((password) => {
         port.postMessage(msg);
     }).catch((err) => {
         msg.error = err.message;
