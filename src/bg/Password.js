@@ -1,5 +1,7 @@
 'use strict';
 
+import Random from './Random.js';
+
 export default class Password {
     constructor(data) {
         this.password = '';
@@ -9,7 +11,7 @@ export default class Password {
 
         if (typeof data === 'string') {
             this.parseString(data);
-        } else {
+        } else if (typeof data !== 'undefined') {
             if (typeof data.password !== 'undefined') {
                 this.password = data.password;
             }
@@ -23,6 +25,10 @@ export default class Password {
                 this.notes = data.notes;
             }
         }
+    }
+
+    generatePassword() {
+        this.password = Random.generateString(15);
     }
 
     parseString(data) {

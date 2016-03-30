@@ -1,6 +1,35 @@
 'use strict';
 
 export default {
+    createDir(name) {
+
+    },
+
+    createFile(dir, name) {
+        const parts = name.split('/');
+        parts.splice(parts.length - 1, 1);
+        if (parts.length > 1) {
+            parts.forEach((part, index, parts) => {
+                const name = parts.slice(0, index).join('/');
+                this.createDir(name);
+            });
+        }
+        return new Promise((resolve, reject) => {
+            dir.getFile(name, {
+                create: true,
+                exclusive: true
+            }, (entry) => {
+                resolve(entry);
+            }, (err) => {
+                if (err.name === 'InvalidModificationError') {
+                    reject(new Error('File already exists'));
+                } else {
+                    reject(err);
+                }
+            });
+        });
+    },
+
     getDisplayPath(entry) {
         return new Promise(function(resolve, reject) {
             chrome.fileSystem.getDisplayPath(entry, (displayPath) => {

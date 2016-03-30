@@ -1,7 +1,6 @@
 'use strict';
 
 import * as openpgp from 'openpgp';
-import Password from './Password.js';
 import fileSystem from './file-system.js';
 
 export function decrypt(privateKey, file, password) {
@@ -23,15 +22,11 @@ export function decrypt(privateKey, file, password) {
         };
 
         return openpgp.decrypt(options);
-    }).then((result) => {
-        return new Password(result.data);
     });
 }
 
-export function encrypt(publicKey, file, content) {
+export function encrypt(publicKey, file, password) {
     return publicKey.open().then((publicKeys) => {
-        const password = new Password(content);
-
         const options = {
             data: password.toString(),
             publicKeys: publicKeys,

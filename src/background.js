@@ -2,6 +2,7 @@
 
 import * as urls from './bg/urls.js';
 import * as pgp from './bg/pgp.js';
+import Password from './bg/Password.js';
 import PrivateKey from './bg/PrivateKey.js';
 import PublicKey from './bg/PublicKey.js';
 import PassDirectory from './bg/PassDirectory.js';
@@ -32,9 +33,34 @@ chrome.runtime.onConnectExternal.addListener((port) => {
             decrypt(msg.name, msg.password, port);
         } else if (msg.cmd === 'encrypt') {
             encrypt(msg.name, msg.content, port);
+        } else if (msg.cmd === 'create') {
+            create(msg.name, port);
         }
     });
 });
+
+function create(name, port) {
+    const msg = {cmd: 'create'};
+    window.passDir.then((dir) => {
+        return Promise.all([
+            dir.createFile(`${name}.gpg`),
+            window.publicKey
+        ]);
+    }).then((results) => {
+        const entry = results[0];
+        const publicKey = results[1];
+
+        const password = new Password();
+        password.generatePassword();
+
+        return pgp.encrypt(publicKey, entry, password);
+    })
+    .then(() => port.postMessage(msg))
+    .catch((err) => {
+        msg.error = err.message;
+        port.postMessage(msg);
+    });
+}
 
 function savePassDir(dir) {
     window.passDir = PassDirectory.save(dir);
@@ -63,11 +89,11 @@ function decrypt(name, password, port) {
         const privateKey = results[1];
 
         return pgp.decrypt(privateKey, file, password);
-    }).then((password) => {
+    }).then((result) => {
+        const password = new Password(result.data);
         msg.password = password.toJSON();
         port.postMessage(msg);
     }).catch((err) => {
-        console.log(err);
         msg.error = err.message;
         port.postMessage(msg);
     });
@@ -84,7 +110,9 @@ function encrypt(name, content, port) {
         const file = results[0];
         const publicKey = results[1];
 
-        return pgp.encrypt(publicKey, file, content);
+        const password = new Password(content);
+
+        return pgp.encrypt(publicKey, file, password);
     }).then((password) => {
         port.postMessage(msg);
     }).catch((err) => {

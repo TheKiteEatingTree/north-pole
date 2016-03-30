@@ -95,4 +95,8 @@ export default class PassDirectory {
             this.entry.getFile(`${name}.gpg`, {}, entry => resolve(entry), err => reject(err));
         });
     }
+
+    createFile(name) {
+        return fileSystem.createFile(this.entry, name);
+    }
 }
