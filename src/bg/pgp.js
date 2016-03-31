@@ -25,10 +25,10 @@ export function decrypt(privateKey, file, password) {
     });
 }
 
-export function encrypt(publicKey, file, password) {
+export function encrypt(publicKey, file, content) {
     return publicKey.open().then((publicKeys) => {
         const options = {
-            data: password.toString(),
+            data: content,
             publicKeys: publicKeys,
             armor: false
         };

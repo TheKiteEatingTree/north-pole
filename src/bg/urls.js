@@ -2,6 +2,7 @@
 
 import moment from 'moment';
 import * as pgp from './pgp.js';
+import Password from './Password.js';
 
 let urlsUpdated = moment.utc().subtract(6, 'hours');
 
@@ -49,41 +50,63 @@ export function testUrl(url, password, port) {
             const privateKey = results[0];
             const file = results[1];
             return pgp.decrypt(privateKey, file, password);
-        }).then((password) => {
+        }).then((result) => {
+            const password = new Password(result.data);
             port.postMessage({
                 cmd: 'foundPassword',
                 password: password.toJSON()
             });
         });
+    }).catch((err) => {
+        port.postMessage({
+            cmd: 'foundPassword',
+            error: `Auto-login error: ${err.message}`
+        });
     });
 }
 
-export function getUrls(password) {
+function getUrls(password) {
     if (moment.utc().subtract(6, 'hours').isAfter(urlsUpdated)) {
-        return refreshUrls(password);
+        return new Promise((resolve, reject) => {
+            window.setTimeout(function() {
+                refreshUrls(password)
+                    .then(urls => resolve(urls))
+                    .catch(err => reject(err));
+            }, 100);
+        });
     } else {
-        //TODO: save urls to single encrypted file in refresh and load that file here
-        return refreshUrls(password);
+        return loadUrls(password);
     }
 }
 
-export function refreshUrls(password) {
+function loadUrls(password) {
+    return window.passDir.then((passDir) => {
+        return Promise.all([
+            window.privateKey,
+            passDir.findFile('.urls')
+        ]);
+    }).then(([privateKey, entry]) => {
+        return pgp.decrypt(privateKey, entry, password);
+    }).then((result) => {
+        const urls = JSON.parse(result.data);
+        return urls;
+    });
+}
+
+function refreshUrls(password) {
     return window.passDir.then((passDir) => {
         return passDir.getFlatFiles().then((files) => {
             return Promise.all([
                 Promise.resolve(files),
                 window.privateKey
             ]);
-        }).then((results) => {
-            const files = results[0];
-            const privateKey = results[1];
-
+        }).then(([files, privateKey]) => {
             return Promise.all(files.map((file) => {
                 return pgp.decrypt(privateKey, file, password)
-                    .then((password) => {
+                    .then((result) => {
                         return {
                             file: file,
-                            password: password
+                            password: new Password(result.data)
                         };
                     });
             }));
@@ -97,6 +120,18 @@ export function refreshUrls(password) {
                     url: result.password.url
                 };
             });
+
+            return Promise.all([
+                Promise.resolve(urls),
+                passDir.createFile('.urls.gpg', false),
+                window.publicKey
+            ]);
+        }).then(([urls, entry, publicKey]) => {
+            return Promise.all([
+                Promise.resolve(urls),
+                pgp.encrypt(publicKey, entry, JSON.stringify(urls))
+            ]);
+        }).then(([urls]) => {
             urlsUpdated = moment.utc();
             return urls;
         });

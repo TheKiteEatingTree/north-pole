@@ -96,7 +96,7 @@ export default class PassDirectory {
         });
     }
 
-    createFile(name) {
-        return fileSystem.createFile(this.entry, name);
+    createFile(name, exclusive) {
+        return fileSystem.createFile(this.entry, name, exclusive);
     }
 }

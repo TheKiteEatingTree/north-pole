@@ -5,7 +5,7 @@ export default {
 
     },
 
-    createFile(dir, name) {
+    createFile(dir, name, exclusive = true) {
         const parts = name.split('/');
         parts.splice(parts.length - 1, 1);
         if (parts.length > 1) {
@@ -17,7 +17,7 @@ export default {
         return new Promise((resolve, reject) => {
             dir.getFile(name, {
                 create: true,
-                exclusive: true
+                exclusive
             }, (entry) => {
                 resolve(entry);
             }, (err) => {
@@ -62,7 +62,7 @@ export default {
                 if (result.isDirectory && result.name !== '.git') {
                     promises.push(this.readDir(result).then(handler));
                 } else {
-                    if (result.name.endsWith('.gpg')) {
+                    if (result.name.endsWith('.gpg') && result.name !== '.urls.gpg') {
                         files.push(result);
                     }
                 }

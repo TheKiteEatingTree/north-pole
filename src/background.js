@@ -53,7 +53,7 @@ function create(name, port) {
         const password = new Password();
         password.generatePassword();
 
-        return pgp.encrypt(publicKey, entry, password);
+        return pgp.encrypt(publicKey, entry, password.toString());
     })
     .then(() => port.postMessage(msg))
     .catch((err) => {
@@ -112,8 +112,8 @@ function encrypt(name, content, port) {
 
         const password = new Password(content);
 
-        return pgp.encrypt(publicKey, file, password);
-    }).then((password) => {
+        return pgp.encrypt(publicKey, file, password.toString());
+    }).then(() => {
         port.postMessage(msg);
     }).catch((err) => {
         msg.error = err.message;
@@ -141,9 +141,7 @@ function testPassword(password, url, port) {
                 msg.error = 'Incorrect Password';
             }
             port.postMessage(msg);
-            window.setTimeout(() => {
-                urls.testUrl(url, password, port);
-            }, 10);
+            urls.testUrl(url, password, port);
         }).catch((err) => {
             msg.error = err.message;
             port.postMessage(msg);
