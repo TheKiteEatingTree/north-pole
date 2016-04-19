@@ -3,6 +3,14 @@
 import fs from 'chrome-fs';
 import storage from './storage.js';
 
+function filterFn(file) {
+    if (file.name[0] === '.' || (file.isFile && file.name.slice(-4) !== '.gpg')) {
+        return false;
+    }
+
+    return true;
+}
+
 export default class PassDirectory {
     constructor(dir) {
         this.dir = dir;
@@ -34,15 +42,15 @@ export default class PassDirectory {
     }
 
     getFiles() {
-        return this.dir.readRecursive();
+        return this.dir.readRecursive(filterFn);
     }
 
     getSimpleFiles() {
-        return this.dir.getSimpleFiles();
+        return this.dir.getSimpleFiles(filterFn);
     }
 
     getFlatFiles() {
-        return this.dir.getFlatFiles();
+        return this.dir.getFlatFiles(filterFn);
     }
 
     findFile(name) {

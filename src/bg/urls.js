@@ -62,6 +62,7 @@ export function testUrl(url, password, port) {
             cmd: 'foundPassword',
             error: `Auto-login error: ${err.message}`
         });
+        throw err;
     });
 }
 
@@ -96,6 +97,12 @@ function loadUrls(password) {
 function refreshUrls(password) {
     return window.passDir.then((passDir) => {
         return passDir.getFlatFiles().then((files) => {
+            files.forEach((file, index, files) => {
+                if (file.name[0] === '.' || file.name.slice(-4) !== '.gpg') {
+                    files.splice(index, 1);
+                }
+            });
+            console.log(files);
             return Promise.all([
                 Promise.resolve(files),
                 window.privateKey
@@ -113,8 +120,8 @@ function refreshUrls(password) {
         }).then((results) => {
             let urls = results.filter((result) => result.password.url);
             urls = urls.map((result) => {
-                let path = result.file.fullPath.slice(0, -4);
-                path = path.slice(passDir.entry.name.length + 2);
+                let path = result.file.entry.fullPath.slice(0, -4);
+                path = path.slice(passDir.dir.name.length + 2);
                 return {
                     file: path,
                     url: result.password.url
@@ -126,10 +133,10 @@ function refreshUrls(password) {
                 passDir.createFile('.urls.gpg', false),
                 window.publicKey
             ]);
-        }).then(([urls, entry, publicKey]) => {
+        }).then(([urls, file, publicKey]) => {
             return Promise.all([
                 Promise.resolve(urls),
-                pgp.encrypt(publicKey, entry, JSON.stringify(urls))
+                pgp.encrypt(publicKey, file, JSON.stringify(urls))
             ]);
         }).then(([urls]) => {
             urlsUpdated = moment.utc();

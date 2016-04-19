@@ -47,13 +47,13 @@ function create(name, port) {
             window.publicKey
         ]);
     }).then((results) => {
-        const entry = results[0];
+        const file = results[0];
         const publicKey = results[1];
 
         const password = new Password();
         password.generatePassword();
 
-        return pgp.encrypt(publicKey, entry, password.toString());
+        return pgp.encrypt(publicKey, file, password.toString());
     })
     .then(() => port.postMessage(msg))
     .catch((err) => {
