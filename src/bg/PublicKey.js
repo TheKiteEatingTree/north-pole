@@ -1,12 +1,12 @@
 'use strict';
 
+import fs from 'chrome-fs';
 import * as openpgp from 'openpgp';
-import fileSystem from './file-system.js';
 import storage from './storage.js';
 
 export default class PublicKey {
-    constructor(entry) {
-        this.entry = entry;
+    constructor(file) {
+        this.file = file;
     }
 
     static fetch() {
@@ -14,28 +14,28 @@ export default class PublicKey {
             if (!keyId) {
                 throw new Error('Please select a public key in northern pass');
             }
-            return fileSystem.restoreEntry(keyId);
-        }).then((entry) => {
-            if (!entry) {
+            return fs.restoreEntry(keyId);
+        }).then((file) => {
+            if (!file) {
                 throw new Error('Could not find public key');
             }
-            return new PublicKey(entry);
+            return new PublicKey(file);
         });
     }
 
-    static save(entry) {
-        const keyId = fileSystem.retainEntry(entry);
+    static save(file) {
+        const keyId = file.retain();
         return storage.save({'publicKey': keyId}).then(() => {
-            return new PublicKey(entry);
+            return new PublicKey(file);
         });
     }
 
     getDisplayPath() {
-        return fileSystem.getDisplayPath(this.entry);
+        return this.file.getDisplayPath();
     }
 
     open() {
-        return fileSystem.readFileAsText(this.entry).then((contents) => {
+        return this.file.readAsText().then((contents) => {
             const publicKeys = openpgp.key.readArmored(contents);
             if (publicKeys.err) {
                 throw new Error('Could not open public key');

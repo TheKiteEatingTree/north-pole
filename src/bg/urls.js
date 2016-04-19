@@ -85,8 +85,8 @@ function loadUrls(password) {
             window.privateKey,
             passDir.findFile('.urls')
         ]);
-    }).then(([privateKey, entry]) => {
-        return pgp.decrypt(privateKey, entry, password);
+    }).then(([privateKey, file]) => {
+        return pgp.decrypt(privateKey, file, password);
     }).then((result) => {
         const urls = JSON.parse(result.data);
         return urls;
