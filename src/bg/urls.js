@@ -84,7 +84,7 @@ function loadUrls(password) {
     return window.passDir.then((passDir) => {
         return Promise.all([
             window.privateKey,
-            passDir.findFile('.urls')
+            passDir.findFile('.urls.gpg')
         ]);
     }).then(([privateKey, file]) => {
         return pgp.decrypt(privateKey, file, password);
@@ -102,7 +102,6 @@ function refreshUrls(password) {
                     files.splice(index, 1);
                 }
             });
-            console.log(files);
             return Promise.all([
                 Promise.resolve(files),
                 window.privateKey
@@ -120,7 +119,7 @@ function refreshUrls(password) {
         }).then((results) => {
             let urls = results.filter((result) => result.password.url);
             urls = urls.map((result) => {
-                let path = result.file.entry.fullPath.slice(0, -4);
+                let path = result.file.entry.fullPath;
                 path = path.slice(passDir.dir.name.length + 2);
                 return {
                     file: path,

@@ -54,7 +54,7 @@ export default class PassDirectory {
     }
 
     findFile(name) {
-        return this.dir.getFile(`${name}.gpg`);
+        return this.dir.getFile(name);
     }
 
     createFile(name, exclusive) {

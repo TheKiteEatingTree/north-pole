@@ -35,6 +35,6 @@ export function encrypt(publicKey, file, content) {
         return openpgp.encrypt(options);
     }).then((result) => {
         const encrypted = result.message.packets.write();
-        return file.writeWithUInt8Array(file, encrypted);
+        return file.writeWithUInt8Array(encrypted);
     });
 }
