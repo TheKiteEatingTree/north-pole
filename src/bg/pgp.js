@@ -1,12 +1,11 @@
 'use strict';
 
 import * as openpgp from 'openpgp';
-import fileSystem from './file-system.js';
 
 export function decrypt(privateKey, file, password) {
     return Promise.all([
         privateKey.open(),
-        fileSystem.readFileAsBlob(file)
+        file.readAsUInt8Array()
     ]).then((results) => {
         const privateKey = results[0];
         const message = openpgp.message.read(results[1]);
@@ -36,6 +35,6 @@ export function encrypt(publicKey, file, content) {
         return openpgp.encrypt(options);
     }).then((result) => {
         const encrypted = result.message.packets.write();
-        return fileSystem.writeFileWithBlob(file, encrypted);
+        return file.writeWithUInt8Array(encrypted);
     });
 }

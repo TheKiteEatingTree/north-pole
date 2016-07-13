@@ -1,11 +1,19 @@
 'use strict';
 
-import fileSystem from './file-system.js';
+import fs from 'fsystem';
 import storage from './storage.js';
 
+function filterFn(file) {
+    if (file.name[0] === '.' || (file.isFile && file.name.slice(-4) !== '.gpg')) {
+        return false;
+    }
+
+    return true;
+}
+
 export default class PassDirectory {
-    constructor(entry) {
-        this.entry = entry;
+    constructor(dir) {
+        this.dir = dir;
     }
 
     static fetch() {
@@ -13,90 +21,43 @@ export default class PassDirectory {
             if (!keyId) {
                 throw new Error('No directory saved');
             }
-            return fileSystem.restoreEntry(keyId);
-        }).then((entry) => {
-            if (!entry) {
+            return fs.restoreEntry(keyId);
+        }).then((dir) => {
+            if (!dir) {
                 throw new Error('Could not find directory');
             }
-            return new PassDirectory(entry);
+            return new PassDirectory(dir);
         });
     }
 
     static save(dir) {
-        const keyId = fileSystem.retainEntry(dir);
+        const keyId = dir.retain();
         return storage.save({'passDir': keyId}).then(() => {
             return new PassDirectory(dir);
         });
     }
 
     getDisplayPath() {
-        return fileSystem.getDisplayPath(this.entry);
+        return this.dir.getDisplayPath();
     }
 
     getFiles() {
-        return fileSystem.readDirRecursive(this.entry)
-            .then(result => result.files);
+        return this.dir.readRecursive(filterFn);
     }
 
     getSimpleFiles() {
-        const convert = function(files) {
-            const simple = files.map((file) => {
-                if (file.isFile) {
-                    return {name: file.name.slice(0, -4)};
-                } else {
-                    return {
-                        name: file.entry.name,
-                        files: convert(file.files)
-                    };
-                }
-            });
-
-            simple.sort((a, b) => {
-                if (a.files && !b.files) {
-                    return -1;
-                } else if (b.files && !a.files) {
-                    return 1;
-                } else {
-                    return a.name.localeCompare(b.name);
-                }
-            });
-
-            return simple;
-        };
-
-        return this.getFiles().then((files) => {
-            return {
-                name: this.entry.name,
-                files: convert(files)
-            };
-        });
+        return this.dir.getSimpleFiles(filterFn);
     }
 
     getFlatFiles() {
-        const add = function(files, flat) {
-            files.forEach((file) => {
-                if (file.isFile) {
-                    flat.push(file);
-                } else {
-                    add(file.files, flat);
-                }
-            });
-        };
-
-        return this.getFiles().then((files) => {
-            const flat = [];
-            add(files, flat);
-            return flat;
-        });
+        return this.dir.getFlatFiles(filterFn);
     }
 
     findFile(name) {
-        return new Promise((resolve, reject) => {
-            this.entry.getFile(`${name}.gpg`, {}, entry => resolve(entry), err => reject(err));
-        });
+        return this.dir.getFile(name);
     }
 
     createFile(name, exclusive) {
-        return fileSystem.createFile(this.entry, name, exclusive);
+        return this.dir.createFile(name, exclusive);
     }
 }

@@ -11,7 +11,7 @@ export default class SettingsController {
         this.pgp.privateKey
             .then(privateKey => this.promise.when(privateKey.getDisplayPath()))
             .then(displayPath => this.privateKeyPath = displayPath)
-            .catch(err => this.toast.show(this.toast.simple().textContent(err.message)));
+            .catch(err => {this.toast.show(this.toast.simple().textContent(err.message)); throw err;});
 
         this.pgp.publicKey
             .then(publicKey => this.promise.when(publicKey.getDisplayPath()))

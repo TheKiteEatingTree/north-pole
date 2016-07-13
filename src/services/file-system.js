@@ -1,5 +1,7 @@
 'use strict';
 
+import fs from 'fsystem';
+
 export default class FileSystem {
     constructor($rootScope, $q) {
         this.scope = $rootScope;
@@ -8,12 +10,9 @@ export default class FileSystem {
 
     chooseEntry(options) {
         return this.promise(function(resolve, reject) {
-            chrome.fileSystem.chooseEntry(options, (entry) => {
-                if (chrome.runtime.lastError) {
-                    return reject(chrome.runtime.lastError);
-                }
-                return resolve(entry);
-            });
+            fs.chooseEntry(options)
+                .then(entry => resolve(entry))
+                .catch(err => reject(err));
         });
     }
 }
