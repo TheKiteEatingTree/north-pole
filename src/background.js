@@ -35,6 +35,8 @@ chrome.runtime.onConnectExternal.addListener((port) => {
             encrypt(msg.name, msg.content, port);
         } else if (msg.cmd === 'create') {
             create(msg.name, port);
+        } else if (msg.cmd === 'refresh') {
+            refresh(msg.password, port);
         }
     });
 });
@@ -119,6 +121,16 @@ function encrypt(name, content, port) {
         msg.error = err.message;
         port.postMessage(msg);
     });
+}
+
+function refresh(password, port) {
+    const msg = {cmd: 'refresh'};
+    urls.refreshUrls(password)
+        .then(() => port.postMessage(msg))
+        .catch((err) => {
+            msg.error = err.message;
+            port.postMessage(msg);
+        });
 }
 
 function sendFiles(port) {
