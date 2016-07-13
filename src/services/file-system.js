@@ -1,6 +1,6 @@
 'use strict';
 
-import fs from 'chrome-fs';
+import fs from 'fsystem';
 
 export default class FileSystem {
     constructor($rootScope, $q) {

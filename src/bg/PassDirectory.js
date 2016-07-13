@@ -1,6 +1,6 @@
 'use strict';
 
-import fs from 'chrome-fs';
+import fs from 'fsystem';
 import storage from './storage.js';
 
 function filterFn(file) {

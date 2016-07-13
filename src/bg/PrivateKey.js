@@ -1,6 +1,6 @@
 'use strict';
 
-import fs from 'chrome-fs';
+import fs from 'fsystem';
 import * as openpgp from 'openpgp';
 import storage from './storage.js';
 
