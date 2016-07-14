@@ -1,18 +1,41 @@
 'use strict';
 
-import moment from 'moment';
 import * as pgp from './pgp.js';
 import Password from './Password.js';
-
-let urlsUpdated = moment.utc().subtract(6, 'hours');
 
 function wildCardToRegex(url) {
     let regex = url.replace('*', '.*');
     return new RegExp(regex);
 }
 
+export function editUrl(name, url, password) {
+    return loadUrls(password).then((urls) => {
+        const i = urls.findIndex((url) => url.file == name);
+        if (url && i > -1) {
+            urls[i].url = url;
+        } else if (url) {
+            urls.push({
+                file: name,
+                url
+            });
+        } else if (i > -1) {
+            urls.splice(i, 1);
+        }
+
+        return window.passDir.then((passDir) => {
+            return Promise.all([
+                Promise.resolve(urls),
+                passDir.findFile('.urls.gpg'),
+                window.publicKey
+            ]);
+        });
+    }).then(([urls, file, publicKey]) => {
+        return pgp.encrypt(publicKey, file, JSON.stringify(urls));
+    });
+}
+
 export function testUrl(url, password, port) {
-    return getUrls(password).then((urls) => {
+    return loadUrls(password).then((urls) => {
         const results = urls.filter((testUrl) => {
             const urlRegex = wildCardToRegex(testUrl.url);
             return urlRegex.test(url);
@@ -66,20 +89,6 @@ export function testUrl(url, password, port) {
     });
 }
 
-function getUrls(password) {
-    if (moment.utc().subtract(6, 'hours').isAfter(urlsUpdated)) {
-        return new Promise((resolve, reject) => {
-            window.setTimeout(function() {
-                refreshUrls(password)
-                    .then(urls => resolve(urls))
-                    .catch(err => reject(err));
-            }, 100);
-        });
-    } else {
-        return loadUrls(password);
-    }
-}
-
 function loadUrls(password) {
     return window.passDir.then((passDir) => {
         return Promise.all([
@@ -94,7 +103,7 @@ function loadUrls(password) {
     });
 }
 
-function refreshUrls(password) {
+export function refreshUrls(password) {
     return window.passDir.then((passDir) => {
         return passDir.getFlatFiles().then((files) => {
             files.forEach((file, index, files) => {
@@ -138,7 +147,6 @@ function refreshUrls(password) {
                 pgp.encrypt(publicKey, file, JSON.stringify(urls))
             ]);
         }).then(([urls]) => {
-            urlsUpdated = moment.utc();
             return urls;
         });
     });
