@@ -8,6 +8,32 @@ function wildCardToRegex(url) {
     return new RegExp(regex);
 }
 
+export function editUrl(name, url, password) {
+    return loadUrls(password).then((urls) => {
+        const i = urls.findIndex((url) => url.file == name);
+        if (url && i > -1) {
+            urls[i].url = url;
+        } else if (url) {
+            urls.push({
+                file: name,
+                url
+            });
+        } else if (i > -1) {
+            urls.splice(i, 1);
+        }
+
+        return window.passDir.then((passDir) => {
+            return Promise.all([
+                Promise.resolve(urls),
+                passDir.findFile('.urls.gpg'),
+                window.publicKey
+            ]);
+        });
+    }).then(([urls, file, publicKey]) => {
+        return pgp.encrypt(publicKey, file, JSON.stringify(urls));
+    });
+}
+
 export function testUrl(url, password, port) {
     return loadUrls(password).then((urls) => {
         const results = urls.filter((testUrl) => {

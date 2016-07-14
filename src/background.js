@@ -32,7 +32,7 @@ chrome.runtime.onConnectExternal.addListener((port) => {
         } else if (msg.cmd === 'decrypt') {
             decrypt(msg.name, msg.password, port);
         } else if (msg.cmd === 'encrypt') {
-            encrypt(msg.name, msg.content, port);
+            encrypt(msg.name, msg.content, msg.password, port);
         } else if (msg.cmd === 'create') {
             create(msg.name, port);
         } else if (msg.cmd === 'refresh') {
@@ -101,7 +101,7 @@ function decrypt(name, password, port) {
     });
 }
 
-function encrypt(name, content, port) {
+function encrypt(name, content, masterPass, port) {
     const msg = {cmd: 'encrypt'};
     window.passDir.then((passDir) => {
         return Promise.all([
@@ -114,6 +114,7 @@ function encrypt(name, content, port) {
 
         const password = new Password(content);
 
+        urls.editUrl(name, password.url, masterPass);
         return pgp.encrypt(publicKey, file, password.toString());
     }).then(() => {
         port.postMessage(msg);
