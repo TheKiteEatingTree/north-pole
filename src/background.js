@@ -153,11 +153,12 @@ function login(password, url, port) {
         .then(() => window.passDir)
         .then((passDir) => {
             return Promise.all([
-                passDir.getSimpleFiles()
-                // urls.find(url, password)
+                passDir.getSimpleFiles(),
+                urls.find(url, password)
             ]);
-        }).then(([files]) => {
+        }).then(([files, matches]) => {
             msg.files = files;
+            msg.matches = matches;
             port.postMessage(msg);
         }).catch((err) => {
             msg.error = err.message;
