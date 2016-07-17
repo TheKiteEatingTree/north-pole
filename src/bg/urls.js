@@ -34,58 +34,27 @@ export function editUrl(name, url, password) {
     });
 }
 
-export function testUrl(url, password, port) {
+export function find(url, password) {
     return loadUrls(password).then((urls) => {
         const results = urls.filter((testUrl) => {
             const urlRegex = wildCardToRegex(testUrl.url);
             return urlRegex.test(url);
         });
 
-        if (!results.length) {
-            return false;
-        }
+        results.sort((a, b) => {
+            if (a.url === b.url) {
+                return 0;
+            }
 
-        let result = null;
-        if (results.length > 1) {
-            result = results.reduce((prev, cur) => {
-                const prevReg = wildCardToRegex(prev.url);
+            const aReg = wildCardToRegex(a.url);
 
-                if (prevReg.test(cur.url)) {
-                    return cur;
-                } else {
-                    return prev;
-                }
-            });
-        } else {
-            result = results[0];
-        }
-
-        if (!result) {
-            return false;
-        }
-
-        return window.passDir.then((passDir) => {
-            return Promise.all([
-                window.privateKey,
-                passDir.findFile(result.file)
-            ]);
-        }).then((results) => {
-            const privateKey = results[0];
-            const file = results[1];
-            return pgp.decrypt(privateKey, file, password);
-        }).then((result) => {
-            const password = new Password(result.data);
-            port.postMessage({
-                cmd: 'foundPassword',
-                password: password.toJSON()
-            });
+            if (aReg.test(b.url)) {
+                return 1;
+            }
+            return -1;
         });
-    }).catch((err) => {
-        port.postMessage({
-            cmd: 'foundPassword',
-            error: `Auto-login error: ${err.message}`
-        });
-        throw err;
+
+        return results.map(result => result.file);
     });
 }
 

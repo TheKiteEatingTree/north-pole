@@ -27,8 +27,8 @@ chrome.runtime.onConnectExternal.addListener((port) => {
     port.onMessage.addListener((msg) => {
         if (msg.cmd === 'sendFiles') {
             sendFiles(port);
-        } else if (msg.cmd === 'testPassword') {
-            testPassword(msg.password, msg.url, port);
+        } else if (msg.cmd === 'login') {
+            login(msg.password, msg.url, port);
         } else if (msg.cmd === 'decrypt') {
             decrypt(msg.name, msg.password, port);
         } else if (msg.cmd === 'encrypt') {
@@ -146,15 +146,20 @@ function sendFiles(port) {
         });
 }
 
-function testPassword(password, url, port) {
-    const msg = {cmd: 'testPassword'};
-    window.privateKey.then(privateKey => privateKey.testPassword(password))
-        .then((success) => {
-            if (!success) {
-                msg.error = 'Incorrect Password';
-            }
+function login(password, url, port) {
+    const msg = {cmd: 'login'};
+    window.privateKey
+        .then(privateKey => privateKey.testPassword(password))
+        .then(() => window.passDir)
+        .then((passDir) => {
+            return Promise.all([
+                passDir.getSimpleFiles(),
+                urls.find(url, password)
+            ]);
+        }).then(([files, matches]) => {
+            msg.files = files;
+            msg.matches = matches;
             port.postMessage(msg);
-            urls.testUrl(url, password, port);
         }).catch((err) => {
             msg.error = err.message;
             port.postMessage(msg);

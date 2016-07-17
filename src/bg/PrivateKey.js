@@ -45,6 +45,12 @@ export default class PrivateKey {
     }
 
     testPassword(password) {
-        return this.open().then(privateKey => privateKey.decrypt(password));
+        return this.open()
+            .then(privateKey => privateKey.decrypt(password))
+            .then((success) => {
+                if (!success) {
+                    throw new Error('Incorrect Password');
+                }
+            });
     }
 }
